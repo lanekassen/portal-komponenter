@@ -1,0 +1,21 @@
+packages:
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAge: 4320
+
+catalogMode: strict
+cleanupUnusedCatalogs: true
+catalog:
+  "@types/react": ^19.3.0
+  "@types/react-dom": ^19.3.0
+  "@tsdown/css": ^0.22.14
+  happy-dom: ^18.0.1
+  react: ^19.3.0
+  react-dom: ^19.3.0
+  tsdown: ^0.22.14
+  typescript: ^7.0.2
+  vitest: ^5.0.2
+  '@biomejs/biome': ^2.5.14

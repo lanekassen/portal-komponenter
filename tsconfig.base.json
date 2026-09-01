@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["ES2023", "DOM"],
+    "moduleResolution": "bundler",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  }
+}
