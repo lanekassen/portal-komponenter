@@ -6,7 +6,8 @@
     "build": "pnpm --recursive build",
     "test": "pnpm --recursive test",
     "typecheck": "tsc --build",
-    "check": "biome check"
+    "check": "biome check",
+    "publish-packages": "pnpm --filter './packages/*' build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
