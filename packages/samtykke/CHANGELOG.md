@@ -1,5 +1,13 @@
 # @lanekassen/portal-samtykke
 
+## 0.1.2
+
+### Patch Changes
+
+- ccb1e60: Update non-major dependencies
+- Updated dependencies [ccb1e60]
+  - @lanekassen/portal-riktekst@0.1.1
+
 ## 0.1.1
 
 ### Patch Changes
