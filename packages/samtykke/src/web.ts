@@ -177,7 +177,7 @@ export class SamtykkeBanner extends HTMLElement {
           display: none;
         }
       </style>
-      <dialog class="ds-dialog" closedby="none" aria-labelledby="consent-title">
+      <dialog id="samtykke-banner" class="ds-dialog" closedby="none" aria-labelledby="consent-title">
         <div class="ds-dialog__block">
           <h2 id="consent-title" class="ds-heading" data-size="sm">
             <div data-size="xs">${escapeHtml(tekster.heading)}</div>
