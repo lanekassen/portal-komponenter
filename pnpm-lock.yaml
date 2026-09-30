@@ -12,6 +12,9 @@ catalogs:
     '@changesets/cli':
       specifier: ^3.0.3
       version: 3.0.3
+    '@changesets/config':
+      specifier: ^4.0.1
+      version: 4.0.1
     '@types/react':
       specifier: ^19.3.0
       version: 19.3.0
@@ -47,6 +50,9 @@ importers:
       '@changesets/cli':
         specifier: 'catalog:'
         version: 3.0.3
+      '@changesets/config':
+        specifier: 'catalog:'
+        version: 4.0.1
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
