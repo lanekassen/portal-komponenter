@@ -1,5 +1,11 @@
 # @lanekassen/portal-samtykke
 
+## 0.1.1
+
+### Patch Changes
+
+- 2afa260: Types: add STNO choice
+
 ## 0.1.0
 
 ### Minor Changes
