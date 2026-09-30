@@ -5,6 +5,7 @@ import {
 
 export interface Samtykkevalg {
   statistikk?: { samtykket: boolean } | null;
+  stnoFunksjonalitett?: { samtykket: boolean } | null;
 }
 
 export interface TeksterDto {
