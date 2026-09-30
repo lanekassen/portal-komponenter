@@ -2,6 +2,17 @@
   "name": "@lanekassen/portal-riktekst",
   "version": "0.0.0",
   "type": "module",
+  "author": "Lånekassen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lanekassen/portal-komponenter.git"
+  },
+  "homepage": "https://github.com/lanekassen/portal-komponenter/blob/main/packages/riktekst",
+  "license": "MIT",
+  "keywords": [
+    "riktekst",
+    "lanekassen"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
@@ -11,6 +22,14 @@
       "types": "./dist/web.d.mts",
       "import": "./dist/web.mjs"
     }
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

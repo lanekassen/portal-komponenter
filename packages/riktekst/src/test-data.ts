@@ -1,4 +1,6 @@
-export const complexCmsOutput = {
+import type { HtmlParsedOutput } from "./web";
+
+export const complexCmsOutput: HtmlParsedOutput = {
   tagName: "#document",
   text: null,
   attributes: {},
