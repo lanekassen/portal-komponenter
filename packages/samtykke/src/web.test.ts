@@ -128,9 +128,11 @@ describe("SamtykkeBanner", () => {
   });
 
   it.each([
-    { action: "accept", accepted: true },
-    { action: "reject", accepted: false },
-  ])("saves the $action choice", async ({ action, accepted }) => {
+    { action: "accept", accepted: true, cookieExists: false },
+    { action: "reject", accepted: false, cookieExists: false },
+    { action: "accept", accepted: true, cookieExists: true },
+    { action: "reject", accepted: false, cookieExists: true },
+  ])("saves the $action choice", async ({ action, accepted, cookieExists }) => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(response({}))
@@ -144,7 +146,15 @@ describe("SamtykkeBanner", () => {
     const reloadMock = vi
       .spyOn(window.location, "reload")
       .mockImplementation(() => {});
+    if (cookieExists) {
+      // biome-ignore lint/suspicious/noDocumentCookie: setting existing consent for tests
+      document.cookie = "lksamtykke=existing; Path=/";
+    }
     document.body.append(banner);
+    await vi.waitFor(() =>
+      expect(banner.querySelector("dialog")).not.toBeNull(),
+    );
+    banner.show();
     await vi.waitFor(() =>
       expect(banner.querySelector("dialog")?.open).toBe(true),
     );
@@ -170,7 +180,7 @@ describe("SamtykkeBanner", () => {
       },
     );
     expect(banner.querySelector("dialog")?.open).toBe(false);
-    if (accepted) {
+    if (accepted || !cookieExists) {
       const reloadedScript = document.head.querySelector<HTMLScriptElement>(
         'script[data-setup="true"]',
       );

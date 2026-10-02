@@ -63,6 +63,7 @@ export class SamtykkeBanner extends HTMLElement {
     this.#saving = true;
     this.#setActionButtonBusy(button, true);
 
+    const cookieExists = hasCookie(COOKIE_NAME);
     const samtykkevalg: Samtykkevalg = { statistikk: { samtykket } };
     try {
       const response = await fetch(
@@ -83,7 +84,7 @@ export class SamtykkeBanner extends HTMLElement {
         );
       }
 
-      if (samtykket) {
+      if (samtykket || !cookieExists) {
         reloadMonitorSetup();
       } else {
         window.location.reload();
