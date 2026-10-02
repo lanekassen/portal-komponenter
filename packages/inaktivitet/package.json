@@ -1,0 +1,54 @@
+{
+  "name": "@lanekassen/portal-inaktivitet",
+  "version": "0.0.0",
+  "type": "module",
+  "author": "Lånekassen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lanekassen/portal-komponenter.git"
+  },
+  "homepage": "https://github.com/lanekassen/portal-komponenter/blob/main/packages/inaktivitet",
+  "license": "MIT",
+  "keywords": [
+    "inaktivitet",
+    "lanekassen"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./web": {
+      "types": "./dist/web.d.mts",
+      "import": "./dist/web.mjs"
+    }
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "happy-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tsdown": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
+}

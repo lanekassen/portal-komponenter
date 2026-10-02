@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./packages/samtykke" },
-    { "path": "./packages/riktekst" }
+    { "path": "./packages/riktekst" },
+    { "path": "./packages/inaktivitet" }
   ]
 }
