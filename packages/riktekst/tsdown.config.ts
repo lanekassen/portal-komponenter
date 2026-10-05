@@ -1,5 +1,5 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/web.ts"],
+  entry: ["src/index.tsx", "src/web.ts"],
 });

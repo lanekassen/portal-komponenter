@@ -50,6 +50,23 @@ describe("renderRichText", () => {
     expect(container.textContent).toBe("Plain text");
   });
 
+  it("renders definitions as linked inline popovers", () => {
+    const container = render({
+      tagName: "p",
+      children: [
+        {
+          tagName: "dfn",
+          attributes: { title: "Help text", id: "term" },
+          text: "The term",
+        },
+      ],
+    });
+
+    expect(container.innerHTML.replace(/popover-[^" ]+/g, "popover-id")).toBe(
+      '<p class="ds-paragraph"><button id="term" type="button" data-popover="inline" popovertarget="popover-id">The term</button><span id="popover-id" class="ds-popover" popover="auto" data-color="neutral" data-placement="top"><strong style="display: block;">The term</strong>Help text</span></p>',
+    );
+  });
+
   it("escapes text and attributes", () => {
     const container = render({
       tagName: "p",
@@ -170,7 +187,7 @@ describe("renderRichText", () => {
     const container = render(complexCmsOutput);
 
     expect(
-      container.innerHTML,
+      container.innerHTML.replace(/popover-[^" ]+/g, "popover-id"),
     ).toBe(`<p class="ds-paragraph">Hallo feilmelding</p>
 <p class="ds-paragraph">Her er en liste</p>
 <ol class="ds-list">
@@ -189,7 +206,7 @@ describe("renderRichText", () => {
 <p class="ds-paragraph"><strong>Bold</strong></p>
 <p class="ds-paragraph"><em>Italics</em></p>
 <p class="ds-paragraph">&nbsp;</p>
-<p class="ds-paragraph"><dfn title="hemmlig tekst">Hjelp tekst åøæ</dfn></p>
+<p class="ds-paragraph"><button type="button" data-popover="inline" popovertarget="popover-id">Hjelp tekst åøæ</button><span id="popover-id" class="ds-popover" popover="auto" data-color="neutral" data-placement="top"><strong style="display: block;">Hjelp tekst åøæ</strong>hemmlig tekst</span></p>
 <p class="ds-paragraph">&nbsp;</p>
 <p class="ds-paragraph">mixed <strong>in </strong><em>text </em>here</p>
 <p class="ds-paragraph">&nbsp;</p>

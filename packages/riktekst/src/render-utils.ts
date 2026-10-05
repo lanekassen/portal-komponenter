@@ -37,6 +37,13 @@ export function isUnsafeTagName(tagName: string): boolean {
   return UNSAFE_TAG_NAMES.has(tagName);
 }
 
+export function getNodeText(value: HtmlParsedOutput): string {
+  if (value.tagName && isUnsafeTagName(normalizeTagName(value.tagName))) {
+    return "";
+  }
+  return (value.text ?? "") + (value.children?.map(getNodeText).join("") ?? "");
+}
+
 export function getDesignsystemetClass(tagName: string): string | undefined {
   return Object.hasOwn(DESIGNSYSTEMET_CLASSES, tagName)
     ? DESIGNSYSTEMET_CLASSES[tagName]
@@ -58,6 +65,27 @@ export function getPrimitiveAttributes(
         typeof value === "boolean"
       );
     },
+  );
+}
+
+export function getNonEmptyStringAttribute(
+  attributes: HtmlParsedOutput["attributes"],
+  attributeName: string,
+): string | undefined {
+  const value = getPrimitiveAttributes(attributes).find(
+    ([name]) => name.toLowerCase() === attributeName.toLowerCase(),
+  )?.[1];
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+export function omitAttribute(
+  attributes: HtmlParsedOutput["attributes"],
+  attributeName: string,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(attributes ?? {}).filter(
+      ([name]) => name.toLowerCase() !== attributeName.toLowerCase(),
+    ),
   );
 }
 
