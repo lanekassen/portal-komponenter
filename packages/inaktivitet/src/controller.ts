@@ -1,7 +1,7 @@
 import type {
+  InaktivitetsModal,
   Inaktivitetsstatus,
   InaktivitetsvarslingConfig,
-  InaktivitetTekster,
 } from "./types";
 import type { InaktivitetDialog } from "./web";
 
@@ -15,6 +15,7 @@ export class InaktivitetController {
   #renewing = false;
   #nextCheckSeconds = FALLBACK_INTERVAL_SECONDS;
   #confirmInactivityOrExpiry = false;
+  #textsRequested = false;
 
   constructor(
     private config: InaktivitetsvarslingConfig,
@@ -27,7 +28,6 @@ export class InaktivitetController {
   }
 
   start(): void {
-    void this.#loadTexts();
     void this.#check();
   }
 
@@ -84,10 +84,14 @@ export class InaktivitetController {
   }
 
   async #loadTexts(): Promise<void> {
-    const textsUrl = new URL(this.config.textsUrl, window.location.origin);
-    textsUrl.searchParams.set("culture", document.documentElement.lang);
+    if (this.#stopped || this.#textsRequested) {
+      return;
+    }
+    this.#textsRequested = true;
 
     try {
+      const textsUrl = new URL(this.config.textsUrl, window.location.origin);
+      textsUrl.searchParams.set("culture", document.documentElement.lang);
       const response = await this.#request(textsUrl.href);
 
       if (!response.ok) {
@@ -96,7 +100,7 @@ export class InaktivitetController {
         );
       }
 
-      const texts = response.body as InaktivitetTekster;
+      const texts = response.body as InaktivitetsModal;
 
       if (this.#stopped) {
         return;
@@ -167,6 +171,10 @@ export class InaktivitetController {
       } else {
         this.dialog.setMode("login");
       }
+
+      if (status.skalViseModal) {
+        void this.#loadTexts();
+      }
     } catch (error) {
       if (!this.#stopped && this.#statusRequest === request) {
         console.error("Failed to check inactivity status.", error);
@@ -207,7 +215,7 @@ export class InaktivitetController {
         return;
       }
 
-      if (response.status !== 200) {
+      if (!response.ok) {
         throw new Error(
           `Session renewal request failed with status ${response.status}.`,
         );
@@ -225,34 +233,6 @@ export class InaktivitetController {
         this.dialog.setBusy(false);
         this.#schedule(this.#nextCheckSeconds);
       }
-    }
-  }
-
-  login(): void {
-    if (this.#stopped || this.#renewing) {
-      return;
-    }
-
-    this.stop();
-
-    try {
-      window.location.assign(this.config.loginUrl);
-    } catch (error) {
-      console.error("Failed to navigate to login.", error);
-    }
-  }
-
-  logout(): void {
-    if (this.#stopped || this.#renewing) {
-      return;
-    }
-
-    this.stop();
-
-    try {
-      window.location.assign(this.config.logoutUrl);
-    } catch (error) {
-      console.error("Failed to navigate to logout.", error);
     }
   }
 

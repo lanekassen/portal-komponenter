@@ -12,12 +12,12 @@ import { InaktivitetDialog } from "@lanekassen/portal-inaktivitet";
 
 <InaktivitetDialog
   config={{
-    statusUrl: "/api/session/status",
-    textsUrl: "/api/texts/inactivity",
-    loginUrl: "/login",
-    renewUrl: "/api/session/renew",
-    logoutUrl: "/logout",
-    expiredUrl: "/logged-out",
+    statusUrl: "/du/SjekkOmSesjonUtloper",
+    renewUrl: "/du/UtvidSesjon",
+    textsUrl: "/api/mt1534/CMSProxy/lkno/InaktivitetsModal",
+    loginUrl: "/du/logger_inn",
+    logoutUrl: "/du/logger_ut",
+    expiredUrl: "/${locale}/innlogging?status=logget-ut&arsak=inaktivitet",
   }}
 />;
 ```
@@ -28,11 +28,11 @@ Importer modulen `@lanekassen/portal-inaktivitet/web` og registrer HTML-elemente
 
 ```html
 <inaktivitet-dialog
-  status-url="/api/session/status"
-  texts-url="/api/texts/inactivity"
-  login-url="/login"
-  renew-url="/api/session/renew"
-  logout-url="/logout"
-  expired-url="/logged-out"
+  status-url="/du/SjekkOmSesjonUtloper"
+  renew-url="/du/UtvidSesjon"
+  texts-url="/api/mt1534/CMSProxy/lkno/InaktivitetsModal"
+  login-url="/du/logger_inn"
+  logout-url="/du/logger_ut"
+  expired-url="/${locale}/innlogging?status=logget-ut&arsak=inaktivitet"
 ></inaktivitet-dialog>
 ```

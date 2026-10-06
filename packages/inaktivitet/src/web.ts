@@ -1,13 +1,14 @@
-import type { InaktivitetController } from "./controller";
+import { InaktivitetController } from "./controller";
 import type {
   DialogMode,
+  InaktivitetsModal,
   InaktivitetsvarslingConfig,
-  InaktivitetTekster,
 } from "./types";
 
 export type { InaktivitetsvarslingConfig } from "./types";
 
 interface MonitorConnection {
+  config: InaktivitetsvarslingConfig;
   controller?: InaktivitetController;
 }
 
@@ -15,7 +16,7 @@ let activeMonitor: MonitorConnection | undefined;
 
 export class InaktivitetDialog extends HTMLElement {
   #connection?: MonitorConnection;
-  #texts?: InaktivitetTekster;
+  #texts?: InaktivitetsModal;
   #mode: DialogMode = "hidden";
   #busy = false;
 
@@ -62,7 +63,7 @@ export class InaktivitetDialog extends HTMLElement {
     dialog.close();
   }
 
-  setTexts(texts: InaktivitetTekster): void {
+  setTexts(texts: InaktivitetsModal): void {
     this.#render(texts);
     this.#texts = texts;
     this.show();
@@ -85,7 +86,9 @@ export class InaktivitetDialog extends HTMLElement {
 
   setBusy(busy: boolean): void {
     this.#busy = busy;
-    for (const button of this.querySelectorAll<HTMLButtonElement>("button")) {
+    for (const button of this.querySelectorAll<HTMLButtonElement>(
+      "button[data-inaktivitet-dialog-action]",
+    )) {
       if (busy) {
         button.setAttribute("aria-busy", "true");
       } else {
@@ -117,7 +120,9 @@ export class InaktivitetDialog extends HTMLElement {
       !logoutUrl ||
       !expiredUrl
     ) {
-      throw new Error("The inactivity dialog requires all six URL attributes.");
+      throw new Error(
+        "The inactivity dialog requires the following attributes: status-url, texts-url, login-url, renew-url, logout-url, expired-url.",
+      );
     }
 
     const config: InaktivitetsvarslingConfig = {
@@ -135,16 +140,11 @@ export class InaktivitetDialog extends HTMLElement {
       );
     }
 
-    const connection: MonitorConnection = {};
+    const connection: MonitorConnection = { config };
     this.#connection = connection;
     activeMonitor = connection;
 
     try {
-      const { InaktivitetController } = await import("./controller");
-      if (this.#connection !== connection) {
-        return;
-      }
-
       connection.controller = new InaktivitetController(config, this, () =>
         this.#release(connection),
       );
@@ -172,7 +172,7 @@ export class InaktivitetDialog extends HTMLElement {
     this.replaceChildren();
   }
 
-  #render(tekster: InaktivitetTekster): void {
+  #render(tekster: InaktivitetsModal): void {
     const previousDialog = this.querySelector<HTMLDialogElement>("dialog");
     const wasOpen = previousDialog?.open;
     if (wasOpen) {
@@ -207,16 +207,15 @@ export class InaktivitetDialog extends HTMLElement {
         }
       </style>
       <dialog id="inaktivitet-dialog" class="ds-dialog" closedby="none" aria-labelledby="inaktivitet-title" aria-describedby="inaktivitet-content">
-        <button
+        <${isLoginMode ? "a" : "button"}
           class="ds-button"
           aria-label="${tekster.cultureName.toLowerCase() === "en-us" ? "Close" : "Lukk"}"
           data-color="neutral"
           data-icon="true"
           data-variant="tertiary"
           data-command="close"
-          data-inaktivitet-dialog-action="${isLoginMode ? "login" : "renew"}"
-          type="button"
-        ></button>
+          ${isLoginMode ? `href="${escapeHtml(this.#connection?.config.loginUrl ?? "")}"` : 'data-inaktivitet-dialog-action="renew" type="button"'}
+        ></${isLoginMode ? "a" : "button"}>
         <div class="ds-dialog__block">
           <h2 id="inaktivitet-title" class="ds-heading" data-size="sm">${escapeHtml(isLoginMode ? tekster.sesjonUtloperTittel : tekster.tittel)}</h2>
           <div id="inaktivitet-content">${escapeHtml(isLoginMode ? tekster.sesjonUtloperInnholdsTekst : tekster.innholdsTekst)}</div>
@@ -224,9 +223,9 @@ export class InaktivitetDialog extends HTMLElement {
             ${
               isLoginMode
                 ? `
-                  <button autofocus class="ds-button" data-inaktivitet-dialog-action="login" type="button">
+                  <a autofocus class="ds-button" href="${escapeHtml(this.#connection?.config.loginUrl ?? "")}">
                     ${escapeHtml(tekster.fornySesjonsTekst)}
-                  </button>
+                  </a>
                 `
                 : `
                   <button autofocus class="ds-button" data-inaktivitet-dialog-action="renew" type="button">
@@ -236,9 +235,9 @@ export class InaktivitetDialog extends HTMLElement {
                     </svg>
                     ${escapeHtml(tekster.utvidSesjonsTekst)}
                   </button>
-                  <button class="ds-button" data-variant="secondary" data-inaktivitet-dialog-action="logout" type="button">
+                  <a class="ds-button" data-variant="secondary" href="${escapeHtml(this.#connection?.config.logoutUrl ?? "")}">
                     ${escapeHtml(tekster.loggUtKnappTekst)}
-                  </button>
+                  </a>
                 `
             }
           </div>
@@ -254,22 +253,13 @@ export class InaktivitetDialog extends HTMLElement {
     for (const button of this.querySelectorAll<HTMLButtonElement>(
       "button[data-inaktivitet-dialog-action]",
     )) {
-      button.addEventListener("click", () => {
+      button.addEventListener("click", (event) => {
         if (this.#busy) {
+          event.preventDefault();
           return;
         }
 
-        switch (button.dataset.inaktivitetDialogAction) {
-          case "renew":
-            void this.#connection?.controller?.renew();
-            break;
-          case "logout":
-            this.#connection?.controller?.logout();
-            break;
-          case "login":
-            this.#connection?.controller?.login();
-            break;
-        }
+        void this.#connection?.controller?.renew();
       });
     }
 

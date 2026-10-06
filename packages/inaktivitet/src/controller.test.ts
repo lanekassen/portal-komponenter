@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InaktivitetController } from "./controller";
-import type { InaktivitetsvarslingConfig, InaktivitetTekster } from "./types";
+import type { InaktivitetsModal, InaktivitetsvarslingConfig } from "./types";
 import type { InaktivitetDialog } from "./web";
 
 const config: InaktivitetsvarslingConfig = {
@@ -66,8 +66,8 @@ function setup(nextConfig = config) {
 }
 
 describe("polling controller", () => {
-  it("fetches localized texts once and passes the response to the dialog", async () => {
-    const texts: InaktivitetTekster = {
+  it("defers localized texts until the dialog is needed and fetches them only once", async () => {
+    const texts: InaktivitetsModal = {
       loggUtKnappTekst: "Log out",
       tittel: "Session ending",
       innholdsTekst: "Your session is ending.",
@@ -78,21 +78,27 @@ describe("polling controller", () => {
       cultureName: "en-US",
     };
     vi.spyOn(document.documentElement, "lang", "get").mockReturnValue("en-US");
+    let checks = 0;
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockImplementation(async (url) =>
-        response(isTextsRequest(url) ? texts : status()),
+        response(isTextsRequest(url) ? texts : status(++checks > 1)),
       );
     const { dialog } = setup({
       ...config,
       textsUrl: "/texts?existing=keep&culture=nb-NO",
     });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(dialog.setTexts).not.toHaveBeenCalled();
+    expect(dialog.setMode).toHaveBeenCalledExactlyOnceWith("hidden");
     await vi.advanceTimersByTimeAsync(300_000);
     expect(fetchMock).toHaveBeenCalledWith(
       new URL("/texts?existing=keep&culture=en-US", window.location.origin)
         .href,
       expect.objectContaining({ cache: "no-store" }),
     );
+    await vi.advanceTimersByTimeAsync(300_000);
     expect(
       fetchMock.mock.calls.filter(([url]) => isTextsRequest(url)),
     ).toHaveLength(1);
@@ -205,12 +211,12 @@ describe("polling controller", () => {
     },
   );
 
-  it("rejects non-200 renewal responses, clears busy state, and allows retries", async () => {
+  it("rejects unsuccessful renewal responses, clears busy state, and allows retries", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockImplementation(async (url) =>
         url === "/renew"
-          ? new Response(null, { status: 204 })
+          ? new Response(null, { status: 500 })
           : response(isTextsRequest(url) ? {} : status(true)),
       );
     const { dialog, release } = setup();
@@ -377,34 +383,4 @@ describe("polling controller", () => {
     expect(dialog.setMode).toHaveBeenCalledExactlyOnceWith("hidden");
     expect(dialog.setBusy.mock.calls).toEqual([[true], [false]]);
   });
-
-  it.each(["logout", "login"] as const)(
-    "stops before navigating once on %s",
-    async (action) => {
-      vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
-        response(isTextsRequest(url) ? {} : status(true, action !== "login")),
-      );
-      const { dialog, release } = setup();
-      const navigationError = new Error("Navigation failed.");
-      vi.mocked(window.location.assign).mockImplementation(() => {
-        expect(release).toHaveBeenCalledOnce();
-        expect(vi.getTimerCount()).toBe(0);
-        throw navigationError;
-      });
-      await vi.advanceTimersByTimeAsync(0);
-      expect(dialog.setMode).toHaveBeenCalledExactlyOnceWith(
-        action === "login" ? "login" : "warning",
-      );
-      controller?.[action]();
-      controller?.[action]();
-      expect(window.location.assign).toHaveBeenCalledOnce();
-      expect(window.location.assign).toHaveBeenCalledWith(
-        action === "login" ? config.loginUrl : config.logoutUrl,
-      );
-      expect(console.error).toHaveBeenCalledWith(
-        `Failed to navigate to ${action}.`,
-        navigationError,
-      );
-    },
-  );
 });

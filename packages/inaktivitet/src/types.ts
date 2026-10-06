@@ -7,7 +7,7 @@ export interface Inaktivitetsstatus {
 
 export type DialogMode = "hidden" | "warning" | "login";
 
-export interface InaktivitetTekster {
+export interface InaktivitetsModal {
   loggUtKnappTekst: string;
   tittel: string;
   innholdsTekst: string;

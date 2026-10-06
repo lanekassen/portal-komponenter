@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InaktivitetController } from "./controller";
-import type { InaktivitetTekster } from "./types";
+import type { InaktivitetsModal } from "./types";
 import type { InaktivitetsvarslingConfig } from "./web";
 import { InaktivitetDialog } from "./web";
 
@@ -25,7 +25,7 @@ const texts = {
   sesjonUtloperInnholdsTekst: "Sign in again to continue.",
   sesjonUtloperTittel: "Session ended",
   cultureName: "en-US",
-} satisfies InaktivitetTekster;
+} satisfies InaktivitetsModal;
 
 function setup() {
   const dialog = new PresentationTestDialog();
@@ -98,7 +98,7 @@ describe("InaktivitetDialog", () => {
       );
       expect(dialog.querySelector("img")).toBeNull();
       for (const element of dialog.querySelectorAll(
-        "h2, #inaktivitet-content, .actions button",
+        "h2, #inaktivitet-content, .actions > *",
       )) {
         expect(element.textContent?.trim()).toBe(text);
       }
@@ -114,12 +114,13 @@ describe("InaktivitetDialog", () => {
     expect(dialog.querySelector("#inaktivitet-content")?.textContent).toBe(
       "Sign in again to continue.",
     );
-    expect(dialog.querySelectorAll(".actions button")).toHaveLength(1);
+    expect(dialog.querySelectorAll(".actions a")).toHaveLength(1);
     expect(
-      dialog.querySelector<HTMLButtonElement>(".actions button")?.dataset
-        .inaktivitetDialogAction,
-    ).toBe("login");
-    expect(dialog.querySelector(".actions button")?.textContent?.trim()).toBe(
+      dialog
+        .querySelector(".actions a")
+        ?.hasAttribute("data-inaktivitet-dialog-action"),
+    ).toBe(false);
+    expect(dialog.querySelector(".actions a")?.textContent?.trim()).toBe(
       "Log in again",
     );
     const modal = dialog.querySelector("dialog");
@@ -131,7 +132,7 @@ describe("InaktivitetDialog", () => {
     dialog.setMode("warning");
     expect(dialog.querySelector("dialog")?.open).toBe(true);
     expect(dialog.querySelector("h2")?.textContent).toBe("Session ending");
-    expect(dialog.querySelectorAll(".actions button")).toHaveLength(2);
+    expect(dialog.querySelectorAll(".actions > *")).toHaveLength(2);
   });
 
   it("shows only the renewal spinner and preserves busy state across mode changes", () => {
@@ -149,22 +150,24 @@ describe("InaktivitetDialog", () => {
     expect(spinner?.hasAttribute("hidden")).toBe(false);
     dialog.setMode("login");
     expect(dialog.querySelector(".ds-spinner")).toBeNull();
-    expect(dialog.querySelector("button")?.getAttribute("aria-busy")).toBe(
-      "true",
-    );
+    for (const link of dialog.querySelectorAll("a")) {
+      expect(link.hasAttribute("aria-busy")).toBe(false);
+    }
     dialog.setMode("warning");
     expect(dialog.querySelector(".ds-spinner")?.hasAttribute("hidden")).toBe(
       false,
     );
-    for (const button of dialog.querySelectorAll("button")) {
-      expect(button.getAttribute("aria-busy")).toBe("true");
+    for (const button of dialog.querySelectorAll("button, a")) {
+      expect(button.hasAttribute("aria-busy")).toBe(
+        button.matches("button[data-inaktivitet-dialog-action]"),
+      );
     }
 
     dialog.setBusy(false);
     expect(dialog.querySelector(".ds-spinner")?.hasAttribute("hidden")).toBe(
       true,
     );
-    for (const button of dialog.querySelectorAll("button")) {
+    for (const button of dialog.querySelectorAll("button, a")) {
       expect(button.hasAttribute("aria-busy")).toBe(false);
     }
   });
@@ -208,17 +211,15 @@ describe("element-owned monitoring", () => {
     return dialog;
   }
 
-  it("calls controller actions directly and keeps busy actions focusable without activating them", async () => {
+  it("blocks busy renewal buttons while keeping navigation links usable", async () => {
     const renew = vi
       .spyOn(InaktivitetController.prototype, "renew")
       .mockResolvedValue(undefined);
-    const logout = vi
-      .spyOn(InaktivitetController.prototype, "logout")
-      .mockImplementation(() => {});
-    const login = vi
-      .spyOn(InaktivitetController.prototype, "login")
-      .mockImplementation(() => {});
-    const dialog = createDialog();
+    const dialog = createDialog({
+      ...config,
+      loginUrl: '/login?returnTo="home"&culture=en',
+      logoutUrl: "/logout?returnTo=home&culture=en",
+    });
     document.body.append(dialog);
     await vi.dynamicImportSettled();
     const focusedButton =
@@ -228,55 +229,83 @@ describe("element-owned monitoring", () => {
     focusedButton?.focus();
     dialog.setBusy(true);
     expect(document.activeElement).toBe(focusedButton);
-    for (const button of dialog.querySelectorAll("button")) {
-      expect(button.getAttribute("aria-busy")).toBe("true");
-      button.click();
+    for (const button of dialog.querySelectorAll<HTMLElement>("button, a")) {
+      expect(button.hasAttribute("aria-busy")).toBe(
+        button.matches("button[data-inaktivitet-dialog-action]"),
+      );
+      const click = new MouseEvent("click", { cancelable: true });
+      button.dispatchEvent(click);
+      expect(click.defaultPrevented).toBe(button instanceof HTMLButtonElement);
     }
     expect(renew).toHaveBeenCalledOnce();
-    expect(logout).not.toHaveBeenCalled();
     dialog.setBusy(false);
     expect(document.activeElement).toBe(focusedButton);
     focusedButton?.click();
     expect(renew).toHaveBeenCalledTimes(2);
     dialog.querySelector<HTMLButtonElement>('[data-command="close"]')?.click();
     expect(renew).toHaveBeenCalledTimes(3);
-    dialog
-      .querySelector<HTMLButtonElement>(
-        '[data-inaktivitet-dialog-action="logout"]',
-      )
-      ?.click();
-    expect(logout).toHaveBeenCalledOnce();
+    const logoutLink = dialog.querySelector<HTMLAnchorElement>(".actions a");
+    expect(logoutLink?.getAttribute("href")).toBe(
+      "/logout?returnTo=home&culture=en",
+    );
+    const logoutClick = new MouseEvent("click", { cancelable: true });
+    logoutLink?.dispatchEvent(logoutClick);
+    expect(logoutClick.defaultPrevented).toBe(false);
     dialog.setMode("login");
-    for (const button of dialog.querySelectorAll<HTMLButtonElement>(
-      '[data-inaktivitet-dialog-action="login"]',
-    )) {
-      button.click();
-    }
-    expect(login).toHaveBeenCalledTimes(2);
+    const loginLink = dialog.querySelector<HTMLAnchorElement>(".actions a");
+    expect(loginLink?.getAttribute("href")).toBe(
+      '/login?returnTo="home"&culture=en',
+    );
+    const loginClick = new MouseEvent("click", { cancelable: true });
+    loginLink?.dispatchEvent(loginClick);
+    expect(loginClick.defaultPrevented).toBe(false);
+    const closeLink = dialog.querySelector<HTMLAnchorElement>(
+      'a[data-command="close"]',
+    );
+    expect(closeLink?.getAttribute("href")).toBe(
+      loginLink?.getAttribute("href"),
+    );
+    expect(closeLink?.hasAttribute("data-inaktivitet-dialog-action")).toBe(
+      false,
+    );
+    const closeClick = new MouseEvent("click", { cancelable: true });
+    closeLink?.dispatchEvent(closeClick);
+    expect(closeClick.defaultPrevented).toBe(false);
+    dialog.setBusy(true);
+    const busyCloseClick = new MouseEvent("click", { cancelable: true });
+    closeLink?.dispatchEvent(busyCloseClick);
+    expect(busyCloseClick.defaultPrevented).toBe(false);
     dialog.remove();
     focusedButton?.click();
     expect(renew).toHaveBeenCalledTimes(3);
   });
 
-  it("starts only on connection and cancels initialization on early removal", async () => {
+  it("starts on connection, aborts on immediate removal, and restarts on reconnection", async () => {
     const dialog = createDialog();
     await vi.dynamicImportSettled();
     expect(fetch).not.toHaveBeenCalled();
     document.body.append(dialog);
+    expect(fetch).toHaveBeenCalledOnce();
+    const signals = vi
+      .mocked(fetch)
+      .mock.calls.map(([, options]) => options?.signal);
     dialog.remove();
     await vi.dynamicImportSettled();
-    expect(fetch).not.toHaveBeenCalled();
+    for (const signal of signals) {
+      expect(signal?.aborted).toBe(true);
+    }
+    expect(dialog.querySelector("dialog")).toBeNull();
     document.body.append(dialog);
     await vi.dynamicImportSettled();
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(dialog.querySelector("dialog")?.open).toBe(true);
   });
 
-  it("reserves ownership during initialization and releases it on removal", async () => {
+  it("allows only one active monitor and releases ownership on removal", async () => {
     const first = createDialog();
     const second = createDialog();
     document.body.append(first, second);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledOnce();
     first.remove();
     second.remove();
     document.body.append(second);
@@ -287,7 +316,7 @@ describe("element-owned monitoring", () => {
         message: expect.stringContaining("already running"),
       }),
     );
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(second.querySelector("dialog")?.open).toBe(true);
     first.disconnectedCallback();
     const third = createDialog();
@@ -392,7 +421,7 @@ describe("element-owned monitoring", () => {
     expect(dialog.querySelector("dialog")).toBeNull();
     document.body.append(createDialog());
     await vi.dynamicImportSettled();
-    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch).toHaveBeenCalledTimes(2);
     expect(console.error).not.toHaveBeenCalledWith(
       "Failed to initialize inactivity dialog.",
       expect.anything(),
@@ -409,7 +438,8 @@ describe("element-owned monitoring", () => {
     expect(console.error).toHaveBeenCalledWith(
       "Failed to initialize inactivity dialog.",
       expect.objectContaining({
-        message: "The inactivity dialog requires all six URL attributes.",
+        message:
+          "The inactivity dialog requires the following attributes: status-url, texts-url, login-url, renew-url, logout-url, expired-url.",
       }),
     );
     document.body.append(createDialog());
