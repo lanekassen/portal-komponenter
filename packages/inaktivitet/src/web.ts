@@ -18,7 +18,6 @@ export class InaktivitetDialog extends HTMLElement {
   #texts?: InaktivitetTekster;
   #mode: DialogMode = "hidden";
   #busy = false;
-  #previousFocus?: HTMLElement;
 
   connectedCallback(): void {
     if (this.#connection) {
@@ -51,10 +50,6 @@ export class InaktivitetDialog extends HTMLElement {
       return;
     }
 
-    this.#previousFocus =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : undefined;
     dialog.showModal();
   }
 
@@ -65,10 +60,6 @@ export class InaktivitetDialog extends HTMLElement {
     }
 
     dialog.close();
-    if (this.#previousFocus?.isConnected) {
-      this.#previousFocus.focus();
-    }
-    this.#previousFocus = undefined;
   }
 
   setTexts(texts: InaktivitetTekster): void {
@@ -178,7 +169,6 @@ export class InaktivitetDialog extends HTMLElement {
     this.#texts = undefined;
     this.#mode = "hidden";
     this.#busy = false;
-    this.#previousFocus = undefined;
     this.replaceChildren();
   }
 

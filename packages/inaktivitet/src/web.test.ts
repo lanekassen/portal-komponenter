@@ -59,19 +59,15 @@ describe("InaktivitetDialog", () => {
     },
   );
 
-  it("prevents dismissal and restores focus on hide", () => {
-    const trigger = document.createElement("button");
-    document.body.append(trigger);
-    trigger.focus();
+  it("prevents dismissal and closes when hidden", () => {
     const dialog = setup();
     dialog.setMode("warning");
     expect(dialog.querySelector("dialog")?.open).toBe(true);
-    dialog.querySelector<HTMLButtonElement>("button")?.focus();
     const cancel = new Event("cancel", { cancelable: true });
     dialog.querySelector("dialog")?.dispatchEvent(cancel);
     expect(cancel.defaultPrevented).toBe(true);
     dialog.setMode("hidden");
-    expect(document.activeElement).toBe(trigger);
+    expect(dialog.querySelector("dialog")?.open).toBe(false);
   });
 
   it.each(["warning", "login"] as const)(
