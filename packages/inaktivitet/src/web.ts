@@ -234,12 +234,12 @@ export class InaktivitetDialog extends HTMLElement {
             ${
               isLoginMode
                 ? `
-                  <button class="ds-button" data-inaktivitet-dialog-action="login" type="button">
+                  <button autofocus class="ds-button" data-inaktivitet-dialog-action="login" type="button">
                     ${escapeHtml(tekster.fornySesjonsTekst)}
                   </button>
                 `
                 : `
-                  <button class="ds-button" data-inaktivitet-dialog-action="renew" type="button">
+                  <button autofocus class="ds-button" data-inaktivitet-dialog-action="renew" type="button">
                     <svg class="ds-spinner" aria-hidden="true" role="img" viewBox="0 0 50 50" hidden>
                       <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
                       <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
