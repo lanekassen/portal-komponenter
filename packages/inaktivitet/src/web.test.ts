@@ -12,6 +12,7 @@ customElements.define("presentation-test-dialog", PresentationTestDialog);
 
 afterEach(() => {
   document.body.replaceChildren();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -320,6 +321,7 @@ describe("element-owned monitoring", () => {
   });
 
   it("reads new URLs only on reconnection and resets stale dialog state", async () => {
+    vi.useFakeTimers();
     vi.mocked(fetch).mockImplementation(
       async (url) =>
         new Response(
@@ -336,9 +338,7 @@ describe("element-owned monitoring", () => {
     dialog.setBusy(true);
     dialog.setAttribute("status-url", "/updated-status");
     expect(fetch).toHaveBeenCalledTimes(2);
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
-    await vi.dynamicImportSettled();
+    await vi.advanceTimersByTimeAsync(300_000);
     expect(vi.mocked(fetch).mock.calls.at(-1)?.[0]).toBe(
       new URL("/status?bekreftInaktivEllerUtloper=true", document.baseURI).href,
     );
@@ -372,7 +372,6 @@ describe("element-owned monitoring", () => {
       expect(fetch).toHaveBeenCalledTimes(3);
       dialog.remove();
       expect(signal?.aborted).toBe(true);
-      document.dispatchEvent(new Event("visibilitychange"));
       await vi.advanceTimersByTimeAsync(300_000);
       expect(fetch).toHaveBeenCalledTimes(3);
       expect(vi.getTimerCount()).toBe(0);

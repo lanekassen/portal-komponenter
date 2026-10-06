@@ -20,21 +20,7 @@ export class InaktivitetController {
     private config: InaktivitetsvarslingConfig,
     private dialog: InaktivitetDialog,
     private release: () => void,
-  ) {
-    const options = {
-      signal: this.#monitorAbortController.signal,
-    };
-
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        if (document.visibilityState === "visible") {
-          void this.#check();
-        }
-      },
-      options,
-    );
-  }
+  ) {}
 
   get #stopped(): boolean {
     return this.#monitorAbortController.signal.aborted;

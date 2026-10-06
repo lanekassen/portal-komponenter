@@ -133,14 +133,15 @@ describe("polling controller", () => {
     }
   });
 
-  it("checks immediately, honors the server interval, and sends uncached GET requests", async () => {
+  it("checks immediately and on schedule, and sends uncached GET requests", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockImplementation(async (url) =>
-        response(isTextsRequest(url) ? {} : status(false, true, 60)),
+        response(isTextsRequest(url) ? {} : status(true, true, 60)),
       );
-    setup();
+    const { dialog } = setup();
     await vi.advanceTimersByTimeAsync(0);
+    expect(dialog.setMode).toHaveBeenCalledExactlyOnceWith("warning");
     expect(
       fetchMock.mock.calls.filter(([url]) => isStatusRequest(url)),
     ).toHaveLength(1);
@@ -275,8 +276,6 @@ describe("polling controller", () => {
     expect(request?.[1]?.signal?.aborted).toBe(false);
     controller?.stop();
     await vi.advanceTimersByTimeAsync(0);
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
     expect(request?.[1]?.signal?.aborted).toBe(true);
     expect(console.error).not.toHaveBeenCalled();
     expect(
@@ -308,8 +307,6 @@ describe("polling controller", () => {
       "Failed to load inactivity texts.",
       expect.any(Error),
     );
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
     await vi.advanceTimersByTimeAsync(300_000);
     expect(
       fetchMock.mock.calls.filter(([url]) => isTextsRequest(url)),
@@ -353,8 +350,6 @@ describe("polling controller", () => {
     await vi.advanceTimersByTimeAsync(1_000);
     expect(dialog.setMode).toHaveBeenCalledExactlyOnceWith("warning");
     dialog.setMode.mockClear();
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
-    document.dispatchEvent(new Event("visibilitychange"));
     expect(checks).toBe(2);
     void controller?.renew();
     void controller?.renew();
