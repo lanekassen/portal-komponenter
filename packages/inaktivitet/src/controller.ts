@@ -9,6 +9,9 @@ const FALLBACK_INTERVAL_SECONDS = 300;
 const REQUEST_TIMEOUT_SECONDS = 15;
 
 export class InaktivitetController {
+  #config: InaktivitetsvarslingConfig;
+  #dialog: InaktivitetDialog;
+  #release: () => void;
   #monitorAbortController = new AbortController();
   #statusRequest?: AbortController;
   #statusTimer?: number;
@@ -18,10 +21,14 @@ export class InaktivitetController {
   #textsRequested = false;
 
   constructor(
-    private config: InaktivitetsvarslingConfig,
-    private dialog: InaktivitetDialog,
-    private release: () => void,
-  ) {}
+    config: InaktivitetsvarslingConfig,
+    dialog: InaktivitetDialog,
+    release: () => void,
+  ) {
+    this.#config = config;
+    this.#dialog = dialog;
+    this.#release = release;
+  }
 
   get #stopped(): boolean {
     return this.#monitorAbortController.signal.aborted;
@@ -38,7 +45,7 @@ export class InaktivitetController {
 
     this.#monitorAbortController.abort();
     clearTimeout(this.#statusTimer);
-    this.release();
+    this.#release();
   }
 
   async #request(
@@ -90,7 +97,7 @@ export class InaktivitetController {
     this.#textsRequested = true;
 
     try {
-      const textsUrl = new URL(this.config.textsUrl, window.location.origin);
+      const textsUrl = new URL(this.#config.textsUrl, window.location.origin);
       textsUrl.searchParams.set("culture", document.documentElement.lang);
       const response = await this.#request(textsUrl.href);
 
@@ -106,7 +113,7 @@ export class InaktivitetController {
         return;
       }
 
-      this.dialog.setTexts(texts);
+      this.#dialog.setTexts(texts);
     } catch (error) {
       if (!this.#stopped) {
         console.error("Failed to load inactivity texts.", error);
@@ -137,7 +144,7 @@ export class InaktivitetController {
     let next = FALLBACK_INTERVAL_SECONDS;
 
     try {
-      const statusUrl = new URL(this.config.statusUrl, document.baseURI);
+      const statusUrl = new URL(this.#config.statusUrl, document.baseURI);
       statusUrl.searchParams.set(
         "bekreftInaktivEllerUtloper",
         String(this.#confirmInactivityOrExpiry),
@@ -165,11 +172,11 @@ export class InaktivitetController {
       next = status.tidTilNesteSjekkSekunder ?? FALLBACK_INTERVAL_SECONDS;
 
       if (!status.skalViseModal) {
-        this.dialog.setMode("hidden");
+        this.#dialog.setMode("hidden");
       } else if (status.inaktivitet) {
-        this.dialog.setMode("warning");
+        this.#dialog.setMode("warning");
       } else {
-        this.dialog.setMode("login");
+        this.#dialog.setMode("login");
       }
 
       if (status.skalViseModal) {
@@ -198,10 +205,10 @@ export class InaktivitetController {
     this.#statusRequest = undefined;
 
     clearTimeout(this.#statusTimer);
-    this.dialog.setBusy(true);
+    this.#dialog.setBusy(true);
 
     try {
-      const response = await this.#request(this.config.renewUrl, {
+      const response = await this.#request(this.#config.renewUrl, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
         parseJson: false,
       });
@@ -230,7 +237,7 @@ export class InaktivitetController {
     } finally {
       if (this.#renewing && !this.#stopped) {
         this.#renewing = false;
-        this.dialog.setBusy(false);
+        this.#dialog.setBusy(false);
         this.#schedule(this.#nextCheckSeconds);
       }
     }
@@ -240,7 +247,7 @@ export class InaktivitetController {
     this.stop();
 
     try {
-      window.location.assign(this.config.expiredUrl);
+      window.location.assign(this.#config.expiredUrl);
     } catch (error) {
       console.error("Failed to navigate after session expiry.", error);
     }
