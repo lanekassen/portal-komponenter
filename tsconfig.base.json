@@ -8,6 +8,8 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
+    "erasableSyntaxOnly": true,
+    "isolatedDeclarations": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "jsx": "react-jsx"
