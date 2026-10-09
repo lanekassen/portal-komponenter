@@ -19,10 +19,13 @@ afterEach(() => {
 const texts = {
   loggUtKnappTekst: "Log out",
   tittel: "Session ending",
-  innholdsTekst: "Your session is ending.",
+  innholdsTekst: { tagName: "p", text: "Your session is ending." },
   utvidSesjonsTekst: "Stay signed in",
   fornySesjonsTekst: "Log in again",
-  sesjonUtloperInnholdsTekst: "Sign in again to continue.",
+  sesjonUtloperInnholdsTekst: {
+    tagName: "p",
+    text: "Sign in again to continue.",
+  },
   sesjonUtloperTittel: "Session ended",
   cultureName: "en-US",
 } satisfies InaktivitetsModal;
@@ -72,18 +75,26 @@ describe("InaktivitetDialog", () => {
   });
 
   it.each(["warning", "login"] as const)(
-    "opens a labelled modal and escapes every text field in %s mode",
+    "opens a labelled modal and safely renders rich text in %s mode",
     (mode) => {
       const dialog = setup();
       const showModal = vi.spyOn(HTMLDialogElement.prototype, "showModal");
       const text = `<img src=x> &amp; "quoted" 'text'`;
+      const content = {
+        tagName: "p",
+        attributes: { onclick: "alert(1)" },
+        children: [
+          { tagName: "strong", text },
+          { tagName: "script", text: "alert(1)" },
+        ],
+      };
       dialog.setTexts({
         loggUtKnappTekst: text,
         tittel: text,
-        innholdsTekst: text,
+        innholdsTekst: content,
         utvidSesjonsTekst: text,
         fornySesjonsTekst: text,
-        sesjonUtloperInnholdsTekst: text,
+        sesjonUtloperInnholdsTekst: content,
         sesjonUtloperTittel: text,
         cultureName: texts.cultureName,
       });
@@ -93,12 +104,20 @@ describe("InaktivitetDialog", () => {
       expect(modal?.getAttribute("aria-labelledby")).toBe(
         dialog.querySelector("h2")?.id,
       );
-      expect(modal?.getAttribute("aria-describedby")).toBe(
-        dialog.querySelector("#inaktivitet-content")?.id,
-      );
+      expect(modal?.hasAttribute("aria-describedby")).toBe(false);
       expect(dialog.querySelector("img")).toBeNull();
+      expect(dialog.querySelector("script")).toBeNull();
+      expect(
+        dialog.querySelector(".ds-dialog__block > p.ds-paragraph"),
+      ).not.toBeNull();
+      expect(
+        dialog.querySelector(".ds-dialog__block > p strong")?.textContent,
+      ).toBe(text);
+      expect(
+        dialog.querySelector(".ds-dialog__block > p")?.hasAttribute("onclick"),
+      ).toBe(false);
       for (const element of dialog.querySelectorAll(
-        "h2, #inaktivitet-content, .actions > *",
+        "h2, .ds-dialog__block > p, .actions > *",
       )) {
         expect(element.textContent?.trim()).toBe(text);
       }
@@ -111,7 +130,7 @@ describe("InaktivitetDialog", () => {
     dialog.setMode("login");
     expect(dialog.querySelector("dialog")?.open).toBe(true);
     expect(dialog.querySelector("h2")?.textContent).toBe("Session ended");
-    expect(dialog.querySelector("#inaktivitet-content")?.textContent).toBe(
+    expect(dialog.querySelector(".ds-dialog__block > p")?.textContent).toBe(
       "Sign in again to continue.",
     );
     expect(dialog.querySelectorAll(".actions a")).toHaveLength(1);
@@ -259,25 +278,21 @@ describe("element-owned monitoring", () => {
     const loginClick = new MouseEvent("click", { cancelable: true });
     loginLink?.dispatchEvent(loginClick);
     expect(loginClick.defaultPrevented).toBe(false);
-    const closeLink = dialog.querySelector<HTMLAnchorElement>(
-      'a[data-command="close"]',
-    );
-    expect(closeLink?.getAttribute("href")).toBe(
-      loginLink?.getAttribute("href"),
-    );
-    expect(closeLink?.hasAttribute("data-inaktivitet-dialog-action")).toBe(
-      false,
+    const closeButton = dialog.querySelector<HTMLButtonElement>(
+      'button[data-command="close"]',
     );
     const closeClick = new MouseEvent("click", { cancelable: true });
-    closeLink?.dispatchEvent(closeClick);
+    closeButton?.dispatchEvent(closeClick);
     expect(closeClick.defaultPrevented).toBe(false);
+    expect(renew).toHaveBeenCalledTimes(4);
     dialog.setBusy(true);
     const busyCloseClick = new MouseEvent("click", { cancelable: true });
-    closeLink?.dispatchEvent(busyCloseClick);
-    expect(busyCloseClick.defaultPrevented).toBe(false);
+    closeButton?.dispatchEvent(busyCloseClick);
+    expect(busyCloseClick.defaultPrevented).toBe(true);
+    expect(renew).toHaveBeenCalledTimes(4);
     dialog.remove();
     focusedButton?.click();
-    expect(renew).toHaveBeenCalledTimes(3);
+    expect(renew).toHaveBeenCalledTimes(4);
   });
 
   it("starts on connection, aborts on immediate removal, and restarts on reconnection", async () => {

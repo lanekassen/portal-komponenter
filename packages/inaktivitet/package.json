@@ -35,6 +35,9 @@
     "build": "tsdown",
     "test": "vitest run"
   },
+  "dependencies": {
+    "@lanekassen/portal-riktekst": "workspace:*"
+  },
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

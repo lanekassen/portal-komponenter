@@ -70,10 +70,10 @@ describe("polling controller", () => {
     const texts: InaktivitetsModal = {
       loggUtKnappTekst: "Log out",
       tittel: "Session ending",
-      innholdsTekst: "Your session is ending.",
+      innholdsTekst: { text: "Your session is ending." },
       utvidSesjonsTekst: "Stay signed in",
       fornySesjonsTekst: "Log in again",
-      sesjonUtloperInnholdsTekst: "Sign in again to continue.",
+      sesjonUtloperInnholdsTekst: { text: "Sign in again to continue." },
       sesjonUtloperTittel: "Session ended",
       cultureName: "en-US",
     };

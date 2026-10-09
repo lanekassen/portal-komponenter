@@ -5,6 +5,7 @@
     "outDir": ".typescript-cache",
     "tsBuildInfoFile": ".typescript-cache/tsconfig.tsbuildinfo"
   },
+  "references": [{ "path": "../riktekst" }],
   "include": ["src/**/*"],
   "exclude": ["src/**/*.test.ts"]
 }
