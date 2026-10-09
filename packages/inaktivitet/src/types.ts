@@ -1,3 +1,5 @@
+import type { HtmlParsedOutput } from "@lanekassen/portal-riktekst/web";
+
 export interface Inaktivitetsstatus {
   skalViseModal: boolean;
   tidTilNesteSjekkSekunder?: number;
@@ -6,13 +8,6 @@ export interface Inaktivitetsstatus {
 }
 
 export type DialogMode = "hidden" | "warning" | "login";
-
-export interface HtmlParsedOutput {
-  tagName?: string | null;
-  text?: string | null;
-  attributes?: Record<string, unknown> | null;
-  children?: readonly HtmlParsedOutput[] | null;
-}
 
 export interface InaktivitetsModal {
   loggUtKnappTekst: string;
