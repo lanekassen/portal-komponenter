@@ -7,13 +7,20 @@ export interface Inaktivitetsstatus {
 
 export type DialogMode = "hidden" | "warning" | "login";
 
+export interface HtmlParsedOutput {
+  tagName?: string | null;
+  text?: string | null;
+  attributes?: Record<string, unknown> | null;
+  children?: readonly HtmlParsedOutput[] | null;
+}
+
 export interface InaktivitetsModal {
   loggUtKnappTekst: string;
   tittel: string;
-  innholdsTekst: string;
+  innholdsTekst: HtmlParsedOutput;
   utvidSesjonsTekst: string;
   fornySesjonsTekst: string;
-  sesjonUtloperInnholdsTekst: string;
+  sesjonUtloperInnholdsTekst: HtmlParsedOutput;
   sesjonUtloperTittel: string;
   cultureName: string;
 }

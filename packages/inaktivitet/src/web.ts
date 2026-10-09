@@ -1,3 +1,4 @@
+import { renderRichText } from "@lanekassen/portal-riktekst/web";
 import { InaktivitetController } from "./controller";
 import type {
   DialogMode,
@@ -206,19 +207,20 @@ export class InaktivitetDialog extends HTMLElement {
           display: none;
         }
       </style>
-      <dialog id="inaktivitet-dialog" class="ds-dialog" closedby="none" aria-labelledby="inaktivitet-title" aria-describedby="inaktivitet-content">
-        <${isLoginMode ? "a" : "button"}
+      <dialog id="inaktivitet-dialog" class="ds-dialog" closedby="none" aria-labelledby="inaktivitet-title">
+        <button
           class="ds-button"
           aria-label="${tekster.cultureName.toLowerCase() === "en-us" ? "Close" : "Lukk"}"
           data-color="neutral"
           data-icon="true"
           data-variant="tertiary"
           data-command="close"
-          ${isLoginMode ? `href="${escapeHtml(this.#connection?.config.loginUrl ?? "")}"` : 'data-inaktivitet-dialog-action="renew" type="button"'}
-        ></${isLoginMode ? "a" : "button"}>
+          data-inaktivitet-dialog-action="renew"
+          type="button"
+        ></button>
         <div class="ds-dialog__block">
           <h2 id="inaktivitet-title" class="ds-heading" data-size="sm">${escapeHtml(isLoginMode ? tekster.sesjonUtloperTittel : tekster.tittel)}</h2>
-          <div id="inaktivitet-content">${escapeHtml(isLoginMode ? tekster.sesjonUtloperInnholdsTekst : tekster.innholdsTekst)}</div>
+          <div id="inaktivitet-content"></div>
           <div class="actions">
             ${
               isLoginMode
@@ -244,6 +246,14 @@ export class InaktivitetDialog extends HTMLElement {
         </div>
       </dialog>
     `;
+
+    this.querySelector("#inaktivitet-content")?.replaceWith(
+      renderRichText(
+        isLoginMode
+          ? tekster.sesjonUtloperInnholdsTekst
+          : tekster.innholdsTekst,
+      ),
+    );
 
     const dialog = this.querySelector<HTMLDialogElement>("dialog");
     dialog?.addEventListener("cancel", (event) => {
