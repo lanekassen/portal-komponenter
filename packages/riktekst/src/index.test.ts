@@ -48,6 +48,23 @@ describe("RichText", () => {
     expect(render({ text: "Plain text" })).toBe("Plain text");
   });
 
+  it("renders definitions as linked inline popovers", () => {
+    expect(
+      render({
+        tagName: "p",
+        children: [
+          {
+            tagName: "dfn",
+            attributes: { title: "Help text", id: "term" },
+            text: "The term",
+          },
+        ],
+      }).replace(/popover-[^" ]+/g, "popover-id"),
+    ).toBe(
+      '<p class="ds-paragraph"><button id="term" type="button" data-popover="inline" popoverTarget="popover-id">The term</button><span id="popover-id" popover="auto" class="ds-popover" data-color="neutral" data-placement="top"><strong style="display:block">The term</strong>Help text</span></p>',
+    );
+  });
+
   it("escapes text and attributes", () => {
     expect(
       render({
@@ -148,7 +165,7 @@ describe("RichText", () => {
 
   it("renders complex CMS output correctly", () => {
     expect(
-      render(complexCmsOutput),
+      render(complexCmsOutput).replace(/popover-[^" ]+/g, "popover-id"),
     ).toBe(`<p class="ds-paragraph">Hallo feilmelding</p>
 <p class="ds-paragraph">Her er en liste</p>
 <ol class="ds-list">
@@ -167,7 +184,7 @@ describe("RichText", () => {
 <p class="ds-paragraph"><strong>Bold</strong></p>
 <p class="ds-paragraph"><em>Italics</em></p>
 <p class="ds-paragraph">\u00a0</p>
-<p class="ds-paragraph"><dfn title="hemmlig tekst">Hjelp tekst åøæ</dfn></p>
+<p class="ds-paragraph"><button type="button" data-popover="inline" popoverTarget="popover-id">Hjelp tekst åøæ</button><span id="popover-id" popover="auto" class="ds-popover" data-color="neutral" data-placement="top"><strong style="display:block">Hjelp tekst åøæ</strong>hemmlig tekst</span></p>
 <p class="ds-paragraph">\u00a0</p>
 <p class="ds-paragraph">mixed <strong>in </strong><em>text </em>here</p>
 <p class="ds-paragraph">\u00a0</p>

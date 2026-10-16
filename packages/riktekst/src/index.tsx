@@ -1,15 +1,20 @@
 import {
+  type ComponentType,
   createElement,
   Fragment,
   type ReactElement,
   type ReactNode,
+  useId,
 } from "react";
 import {
   getDesignsystemetClass,
+  getNodeText,
+  getNonEmptyStringAttribute,
   getPrimitiveAttributes,
   isUnsafeAttribute,
   isUnsafeTagName,
   normalizeTagName,
+  omitAttribute,
 } from "./render-utils";
 import type { HtmlParsedOutput } from "./web";
 
@@ -22,6 +27,17 @@ const REACT_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = {
   for: "htmlFor",
   readonly: "readOnly",
   tabindex: "tabIndex",
+};
+
+type CustomTagProps = {
+  value: HtmlParsedOutput;
+  children?: ReactNode;
+};
+
+const CUSTOM_TAG_RENDERERS: Readonly<
+  Record<string, ComponentType<CustomTagProps>>
+> = {
+  dfn: DefinitionPopover,
 };
 
 export function RichText({ value }: RichTextProps): ReactElement {
@@ -40,6 +56,18 @@ function renderNode(value: HtmlParsedOutput): ReactNode {
   }
 
   if (isUnsafeTagName(tagName)) return null;
+
+  if (Object.hasOwn(CUSTOM_TAG_RENDERERS, tagName)) {
+    const CustomTag = CUSTOM_TAG_RENDERERS[tagName];
+    if (CustomTag) {
+      return (
+        <CustomTag value={value}>
+          {value.text}
+          {children}
+        </CustomTag>
+      );
+    }
+  }
 
   const attributes = toReactAttributes(value.attributes, tagName);
   return createElement(tagName, attributes, value.text, ...children);
@@ -71,4 +99,41 @@ function toReactAttributes(
   }
 
   return props;
+}
+
+function DefinitionPopover({ value, children }: CustomTagProps): ReactNode {
+  const id = `popover-${useId()}`;
+  const title = getNonEmptyStringAttribute(value.attributes, "title");
+
+  if (title === undefined) {
+    return children;
+  }
+
+  const text = getNodeText(value);
+
+  return (
+    <>
+      <button
+        {...toReactAttributes(
+          omitAttribute(value.attributes, "title"),
+          "button",
+        )}
+        type="button"
+        data-popover="inline"
+        popoverTarget={id}
+      >
+        {children}
+      </button>
+      <span
+        id={id}
+        popover="auto"
+        className="ds-popover"
+        data-color="neutral"
+        data-placement="top"
+      >
+        <strong style={{ display: "block" }}>{text}</strong>
+        {title}
+      </span>
+    </>
+  );
 }
