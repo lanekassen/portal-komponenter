@@ -1,5 +1,13 @@
 # @lanekassen/portal-samtykke
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [11a41ed]
+- Updated dependencies [7d21bb5]
+  - @lanekassen/portal-riktekst@0.2.0
+
 ## 0.1.2
 
 ### Patch Changes

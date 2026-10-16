@@ -1,5 +1,12 @@
 # @lanekassen/portal-riktekst
 
+## 0.2.0
+
+### Minor Changes
+
+- 11a41ed: Add support for custom tags
+- 7d21bb5: Add support for definition text
+
 ## 0.1.1
 
 ### Patch Changes
