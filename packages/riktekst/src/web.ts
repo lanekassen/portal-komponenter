@@ -22,19 +22,59 @@ interface RenderedTag {
   content: Node;
 }
 
-type CustomTagRenderer = (value: HtmlParsedOutput) => RenderedTag | undefined;
+export interface RichTextRendererContext {
+  value: HtmlParsedOutput;
+  element: HTMLElement;
+}
+
+export type RichTextRenderer = (
+  context: RichTextRendererContext,
+) => Node | undefined;
+
+export type RichTextRenderers = Readonly<
+  Record<string, RichTextRenderer | undefined>
+>;
+
+export interface RenderRichTextOptions {
+  renderers?: RichTextRenderers;
+}
+
+type CustomTagRenderer = (
+  context: RichTextRendererContext,
+) => RenderedTag | undefined;
 
 const CUSTOM_TAG_RENDERERS: Readonly<Record<string, CustomTagRenderer>> = {
   dfn: createDefinitionPopover,
 };
 
-export function renderRichText(value: HtmlParsedOutput): DocumentFragment {
+export function renderRichText(
+  value: HtmlParsedOutput,
+  options: RenderRichTextOptions = {},
+): DocumentFragment {
+  const renderers: Readonly<Record<string, CustomTagRenderer>> = {
+    ...CUSTOM_TAG_RENDERERS,
+    ...Object.fromEntries(
+      Object.entries(options.renderers ?? {})
+        .filter(([, renderer]) => renderer !== undefined)
+        .map(([tagName, renderer]) => [
+          tagName,
+          (context: RichTextRendererContext): RenderedTag | undefined => {
+            const node = renderer?.(context);
+            return node ? { node, content: node } : undefined;
+          },
+        ]),
+    ),
+  };
   const fragment = document.createDocumentFragment();
-  appendNode(fragment, value);
+  appendNode(fragment, value, renderers);
   return fragment;
 }
 
-function appendNode(parent: Node, value: HtmlParsedOutput): void {
+function appendNode(
+  parent: Node,
+  value: HtmlParsedOutput,
+  renderers: Readonly<Record<string, CustomTagRenderer>>,
+): void {
   if (value.tagName) {
     const tagName = normalizeTagName(value.tagName);
     if (isUnsafeTagName(tagName)) return;
@@ -42,19 +82,20 @@ function appendNode(parent: Node, value: HtmlParsedOutput): void {
     if (tagName === "#text" || tagName === "#document") {
       if (value.text) parent.appendChild(document.createTextNode(value.text));
       value.children?.forEach((child) => {
-        appendNode(parent, child);
+        appendNode(parent, child, renderers);
       });
       return;
     }
 
-    const customTag = Object.hasOwn(CUSTOM_TAG_RENDERERS, tagName)
-      ? CUSTOM_TAG_RENDERERS[tagName]?.(value)
+    const element = createDefaultElement(tagName, value);
+    const customTag = Object.hasOwn(renderers, tagName)
+      ? renderers[tagName]?.({ value, element })
       : undefined;
-    const { node, content } = customTag ?? createDefaultTag(tagName, value);
+    const { node, content } = customTag ?? { node: element, content: element };
 
     if (value.text) content.appendChild(document.createTextNode(value.text));
     value.children?.forEach((child) => {
-      appendNode(content, child);
+      appendNode(content, child, renderers);
     });
     parent.appendChild(node);
     return;
@@ -62,21 +103,23 @@ function appendNode(parent: Node, value: HtmlParsedOutput): void {
 
   if (value.text) parent.appendChild(document.createTextNode(value.text));
   value.children?.forEach((child) => {
-    appendNode(parent, child);
+    appendNode(parent, child, renderers);
   });
 }
 
-function createDefaultTag(
+function createDefaultElement(
   tagName: string,
   value: HtmlParsedOutput,
-): RenderedTag {
+): HTMLElement {
   const element = document.createElement(tagName);
   setAttributes(element, value.attributes);
   applyDesignsystemetClass(element, tagName);
-  return { node: element, content: element };
+  return element;
 }
 
-function createDefinitionPopover(value: HtmlParsedOutput): RenderedTag {
+function createDefinitionPopover({
+  value,
+}: RichTextRendererContext): RenderedTag {
   const title = getNonEmptyStringAttribute(value.attributes, "title");
   const fragment = document.createDocumentFragment();
 

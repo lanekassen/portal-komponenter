@@ -4,8 +4,11 @@ import { describe, expect, it } from "vitest";
 import { RichText, type RichTextProps } from "./index";
 import { complexCmsOutput } from "./test-data";
 
-function render(value: RichTextProps["value"]): string {
-  return renderToStaticMarkup(createElement(RichText, { value }));
+function render(
+  value: RichTextProps["value"],
+  components?: RichTextProps["components"],
+): string {
+  return renderToStaticMarkup(createElement(RichText, { value, components }));
 }
 
 describe("RichText", () => {
@@ -160,6 +163,32 @@ describe("RichText", () => {
       }),
     ).toBe(
       '<ul class="ds-list"><li>One</li></ul><ol class="ds-list"><li>Two</li></ol>',
+    );
+  });
+
+  it("overrides nested tags and renders their children", () => {
+    const link = {
+      tagName: "A",
+      attributes: { href: "/more" },
+      text: "Read ",
+      children: [{ tagName: "strong", text: "more" }],
+    };
+
+    expect(
+      render(
+        { tagName: "p", children: [link] },
+        {
+          a: ({ attributes, children }) =>
+            createElement(
+              "a",
+              { ...attributes, className: "custom-link" },
+              children,
+            ),
+          strong: ({ children }) => createElement("em", null, children),
+        },
+      ),
+    ).toBe(
+      '<p class="ds-paragraph"><a href="/more" class="custom-link">Read <em>more</em></a></p>',
     );
   });
 
