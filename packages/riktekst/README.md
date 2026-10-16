@@ -38,7 +38,7 @@ function NextLink({ attributes, children }: RichTextComponentProps) {
 ## Native DOM
 
 ```ts
-import { renderRichText, type HtmlParsedOutput  } from "@lanekassen/portal-riktekst/web";
+import { renderRichText, type HtmlParsedOutput } from "@lanekassen/portal-riktekst/web";
 
 const tekst: HtmlParsedOutput = { tagName: "p", text: "Hei!" };
 const container = document.querySelector("#innhold");
