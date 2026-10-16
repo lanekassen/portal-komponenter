@@ -20,7 +20,18 @@ import type { HtmlParsedOutput } from "./web";
 
 export interface RichTextProps {
   value: HtmlParsedOutput;
+  components?: RichTextComponents;
 }
+
+export interface RichTextComponentProps {
+  value: HtmlParsedOutput;
+  attributes: Record<string, string | number | boolean>;
+  children?: ReactNode;
+}
+
+export type RichTextComponents = Readonly<
+  Record<string, ComponentType<RichTextComponentProps> | undefined>
+>;
 
 const REACT_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = {
   class: "className",
@@ -29,25 +40,30 @@ const REACT_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = {
   tabindex: "tabIndex",
 };
 
-type CustomTagProps = {
-  value: HtmlParsedOutput;
-  children?: ReactNode;
-};
-
-const CUSTOM_TAG_RENDERERS: Readonly<
-  Record<string, ComponentType<CustomTagProps>>
-> = {
+const CUSTOM_TAG_RENDERERS: RichTextComponents = {
   dfn: DefinitionPopover,
 };
 
-export function RichText({ value }: RichTextProps): ReactElement {
-  return createElement(Fragment, null, renderNode(value));
+export function RichText({ value, components }: RichTextProps): ReactElement {
+  const renderers: RichTextComponents = {
+    ...CUSTOM_TAG_RENDERERS,
+    ...Object.fromEntries(
+      Object.entries(components ?? {}).filter(
+        ([, component]) => component !== undefined,
+      ),
+    ),
+  };
+
+  return createElement(Fragment, null, renderNode(value, renderers));
 }
 
-function renderNode(value: HtmlParsedOutput): ReactNode {
+function renderNode(
+  value: HtmlParsedOutput,
+  renderers: RichTextComponents,
+): ReactNode {
   const children =
     value.children?.map((child, index) =>
-      createElement(Fragment, { key: index }, renderNode(child)),
+      createElement(Fragment, { key: index }, renderNode(child, renderers)),
     ) ?? [];
 
   const tagName = value.tagName ? normalizeTagName(value.tagName) : undefined;
@@ -57,19 +73,20 @@ function renderNode(value: HtmlParsedOutput): ReactNode {
 
   if (isUnsafeTagName(tagName)) return null;
 
-  if (Object.hasOwn(CUSTOM_TAG_RENDERERS, tagName)) {
-    const CustomTag = CUSTOM_TAG_RENDERERS[tagName];
-    if (CustomTag) {
-      return (
-        <CustomTag value={value}>
-          {value.text}
-          {children}
-        </CustomTag>
-      );
-    }
+  const attributes = toReactAttributes(value.attributes, tagName);
+  const CustomTag = Object.hasOwn(renderers, tagName)
+    ? renderers[tagName]
+    : undefined;
+
+  if (CustomTag) {
+    return (
+      <CustomTag value={value} attributes={attributes}>
+        {value.text}
+        {children}
+      </CustomTag>
+    );
   }
 
-  const attributes = toReactAttributes(value.attributes, tagName);
   return createElement(tagName, attributes, value.text, ...children);
 }
 
@@ -101,7 +118,10 @@ function toReactAttributes(
   return props;
 }
 
-function DefinitionPopover({ value, children }: CustomTagProps): ReactNode {
+function DefinitionPopover({
+  value,
+  children,
+}: RichTextComponentProps): ReactNode {
   const id = `popover-${useId()}`;
   const title = getNonEmptyStringAttribute(value.attributes, "title");
 

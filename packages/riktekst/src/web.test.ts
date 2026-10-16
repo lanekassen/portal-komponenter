@@ -1,10 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { complexCmsOutput } from "./test-data";
-import { type HtmlParsedOutput, renderRichText } from "./web";
+import {
+  type HtmlParsedOutput,
+  type RenderRichTextOptions,
+  renderRichText,
+} from "./web";
 
-function render(value: HtmlParsedOutput): HTMLDivElement {
+function render(
+  value: HtmlParsedOutput,
+  options?: RenderRichTextOptions,
+): HTMLDivElement {
   const container = document.createElement("div");
-  container.append(renderRichText(value));
+  container.append(renderRichText(value, options));
   return container;
 }
 
@@ -180,6 +187,37 @@ describe("renderRichText", () => {
     );
     expect(container.querySelector("ol")?.classList.contains("ds-list")).toBe(
       true,
+    );
+  });
+
+  it("overrides nested tags and renders their children", () => {
+    const link = {
+      tagName: "A",
+      attributes: { href: "/more" },
+      text: "Read ",
+      children: [{ tagName: "strong", text: "more" }],
+    };
+    const container = render(
+      {
+        children: [
+          {
+            tagName: "#DOCUMENT",
+            children: [{ tagName: "p", children: [link] }],
+          },
+        ],
+      },
+      {
+        renderers: {
+          a: ({ element }) => {
+            element.classList.add("custom-link");
+            return element;
+          },
+        },
+      },
+    );
+
+    expect(container.innerHTML).toBe(
+      '<p class="ds-paragraph"><a href="/more" class="ds-link custom-link">Read <strong>more</strong></a></p>',
     );
   });
 
