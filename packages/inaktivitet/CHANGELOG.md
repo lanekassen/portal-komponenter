@@ -1,5 +1,12 @@
 # @lanekassen/portal-inaktivitet
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [f18cf5c]
+  - @lanekassen/portal-riktekst@0.2.1
+
 ## 0.2.1
 
 ### Patch Changes
