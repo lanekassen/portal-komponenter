@@ -19,7 +19,7 @@ import {
 import type { HtmlParsedOutput } from "./web";
 
 export interface RichTextProps {
-  value: HtmlParsedOutput;
+  value?: HtmlParsedOutput;
   components?: RichTextComponents;
 }
 
@@ -44,7 +44,10 @@ const CUSTOM_TAG_RENDERERS: RichTextComponents = {
   dfn: DefinitionPopover,
 };
 
-export function RichText({ value, components }: RichTextProps): ReactElement {
+export function RichText({
+  value = {},
+  components,
+}: RichTextProps): ReactElement {
   const renderers: RichTextComponents = {
     ...CUSTOM_TAG_RENDERERS,
     ...Object.fromEntries(
