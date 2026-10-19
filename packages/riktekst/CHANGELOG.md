@@ -1,5 +1,11 @@
 # @lanekassen/portal-riktekst
 
+## 0.2.1
+
+### Patch Changes
+
+- f18cf5c: Change `value` to allow null or undefined, in which case it renders nothing.
+
 ## 0.2.0
 
 ### Minor Changes
