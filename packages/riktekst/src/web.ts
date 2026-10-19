@@ -48,7 +48,7 @@ const CUSTOM_TAG_RENDERERS: Readonly<Record<string, CustomTagRenderer>> = {
 };
 
 export function renderRichText(
-  value: HtmlParsedOutput = {},
+  value?: HtmlParsedOutput | null,
   options: RenderRichTextOptions = {},
 ): DocumentFragment {
   const renderers: Readonly<Record<string, CustomTagRenderer>> = {
@@ -66,7 +66,7 @@ export function renderRichText(
     ),
   };
   const fragment = document.createDocumentFragment();
-  appendNode(fragment, value, renderers);
+  appendNode(fragment, value ?? {}, renderers);
   return fragment;
 }
 

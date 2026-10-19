@@ -51,8 +51,8 @@ describe("RichText", () => {
     expect(render({ text: "Plain text" })).toBe("Plain text");
   });
 
-  it("renders nothing when value is undefined", () => {
-    expect(render(undefined)).toBe("");
+  it.each([undefined, null])("renders nothing when value is %s", (value) => {
+    expect(render(value)).toBe("");
   });
 
   it("renders definitions as linked inline popovers", () => {

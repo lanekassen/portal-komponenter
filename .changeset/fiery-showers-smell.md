@@ -2,4 +2,4 @@
 "@lanekassen/portal-riktekst": patch
 ---
 
-Change `value` to be optional, renders nothing when undefined.
+Change `value` to allow null or undefined, in which case it renders nothing.

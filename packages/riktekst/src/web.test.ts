@@ -7,7 +7,7 @@ import {
 } from "./web";
 
 function render(
-  value?: HtmlParsedOutput,
+  value?: HtmlParsedOutput | null,
   options?: RenderRichTextOptions,
 ): HTMLDivElement {
   const container = document.createElement("div");
@@ -57,8 +57,8 @@ describe("renderRichText", () => {
     expect(container.textContent).toBe("Plain text");
   });
 
-  it("renders nothing when value is undefined", () => {
-    expect(render(undefined).innerHTML).toBe("");
+  it.each([undefined, null])("renders nothing when value is %s", (value) => {
+    expect(render(value).innerHTML).toBe("");
   });
 
   it("renders definitions as linked inline popovers", () => {
