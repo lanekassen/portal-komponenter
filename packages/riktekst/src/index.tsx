@@ -19,7 +19,7 @@ import {
 import type { HtmlParsedOutput } from "./web";
 
 export interface RichTextProps {
-  value: HtmlParsedOutput;
+  value?: HtmlParsedOutput | null;
   components?: RichTextComponents;
 }
 
@@ -54,7 +54,7 @@ export function RichText({ value, components }: RichTextProps): ReactElement {
     ),
   };
 
-  return createElement(Fragment, null, renderNode(value, renderers));
+  return createElement(Fragment, null, renderNode(value ?? {}, renderers));
 }
 
 function renderNode(
