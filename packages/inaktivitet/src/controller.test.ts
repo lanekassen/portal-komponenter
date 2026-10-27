@@ -189,9 +189,12 @@ describe("polling controller", () => {
     ).toHaveLength(2);
   });
 
-  it.each(["status", "renew"])(
-    "stops and redirects once on %s HTTP 401",
-    async (endpoint) => {
+  it.each([
+    ["status", "sesjon-utlopt"],
+    ["renew", "inaktivitet"],
+  ] as const)(
+    "stops and redirects once on %s HTTP 401 with cause %s",
+    async (endpoint, cause) => {
       vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
         (endpoint === "status" ? isStatusRequest(url) : url === "/renew")
           ? new Response(null, { status: 401 })
@@ -202,7 +205,9 @@ describe("polling controller", () => {
       if (endpoint === "renew") void controller?.renew();
       await vi.advanceTimersByTimeAsync(600_000);
       expect(window.location.assign).toHaveBeenCalledOnce();
-      expect(window.location.assign).toHaveBeenCalledWith(config.expiredUrl);
+      expect(window.location.assign).toHaveBeenCalledWith(
+        `${config.expiredUrl}?status=logget-ut&arsak=${cause}`,
+      );
       expect(release).toHaveBeenCalledOnce();
       expect(release.mock.invocationCallOrder[0]).toBeLessThan(
         vi.mocked(window.location.assign).mock.invocationCallOrder[0],
