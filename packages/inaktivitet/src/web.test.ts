@@ -431,7 +431,9 @@ describe("element-owned monitoring", () => {
     const dialog = createDialog();
     document.body.append(dialog);
     await vi.dynamicImportSettled();
-    expect(window.location.assign).toHaveBeenCalledWith(config.expiredUrl);
+    expect(window.location.assign).toHaveBeenCalledWith(
+      `${config.expiredUrl}?status=logget-ut&arsak=sesjon-utlopt`,
+    );
     expect(dialog.isConnected).toBe(true);
     expect(dialog.querySelector("dialog")).toBeNull();
     document.body.append(createDialog());

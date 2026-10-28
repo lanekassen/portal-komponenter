@@ -17,8 +17,8 @@ export class InaktivitetController {
   #statusTimer?: number;
   #renewing = false;
   #nextCheckSeconds = FALLBACK_INTERVAL_SECONDS;
-  #confirmInactivityOrExpiry = false;
   #textsRequested = false;
+  #lastStatus?: Inaktivitetsstatus;
 
   constructor(
     config: InaktivitetsvarslingConfig,
@@ -147,7 +147,7 @@ export class InaktivitetController {
       const statusUrl = new URL(this.#config.statusUrl, document.baseURI);
       statusUrl.searchParams.set(
         "bekreftInaktivEllerUtloper",
-        String(this.#confirmInactivityOrExpiry),
+        String(this.#lastStatus?.bekreft ?? false),
       );
       const response = await this.#request(statusUrl.href, {
         signal: request.signal,
@@ -168,7 +168,7 @@ export class InaktivitetController {
         );
 
       const status = response.body as Inaktivitetsstatus;
-      this.#confirmInactivityOrExpiry = status.bekreft ?? false;
+      this.#lastStatus = status;
       next = status.tidTilNesteSjekkSekunder ?? FALLBACK_INTERVAL_SECONDS;
 
       if (!status.skalViseModal) {
@@ -245,9 +245,14 @@ export class InaktivitetController {
 
   #expire(): void {
     this.stop();
+    const cause = this.#lastStatus?.inaktivitet
+      ? "inaktivitet"
+      : "sesjon-utlopt";
 
     try {
-      window.location.assign(this.#config.expiredUrl);
+      window.location.assign(
+        `${this.#config.expiredUrl}?status=logget-ut&arsak=${cause}`,
+      );
     } catch (error) {
       console.error("Failed to navigate after session expiry.", error);
     }

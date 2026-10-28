@@ -17,7 +17,7 @@ import { InaktivitetDialog } from "@lanekassen/portal-inaktivitet";
     textsUrl: "/api/mt1534/CMSProxy/lkno/InaktivitetsModal",
     loginUrl: "/du/logger_inn",
     logoutUrl: "/du/logger_ut",
-    expiredUrl: "/${locale}/innlogging?status=logget-ut&arsak=inaktivitet",
+    expiredUrl: "/${locale}/innlogging",
   }}
 />;
 ```
@@ -33,6 +33,6 @@ Importer modulen `@lanekassen/portal-inaktivitet/web` og registrer HTML-elemente
   texts-url="/api/mt1534/CMSProxy/lkno/InaktivitetsModal"
   login-url="/du/logger_inn"
   logout-url="/du/logger_ut"
-  expired-url="/${locale}/innlogging?status=logget-ut&arsak=inaktivitet"
+  expired-url="/${locale}/innlogging"
 ></inaktivitet-dialog>
 ```
