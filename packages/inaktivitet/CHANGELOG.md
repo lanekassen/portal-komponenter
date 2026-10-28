@@ -1,5 +1,11 @@
 # @lanekassen/portal-inaktivitet
 
+## 0.3.0
+
+### Minor Changes
+
+- ce71a91: Fix correct query parameter for cause when the user is redirected to the expiry page.
+
 ## 0.2.2
 
 ### Patch Changes
