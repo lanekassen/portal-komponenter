@@ -1,4 +1,5 @@
 packages:
+  - apps/*
   - packages/*
 
 minimumReleaseAge: 4320
@@ -17,3 +18,27 @@ catalog:
   '@biomejs/biome': ^2.5.14
   '@changesets/cli': ^3.0.3
   '@changesets/config': ^4.0.1
+  "@mdx-js/react": ^3.1.1
+  "@navikt/aksel-icons": ^8.22.1
+  '@storybook/addon-a11y': ^10.6.6
+  "@storybook/addon-docs": ^10.6.6
+  "@storybook/addon-themes": ^10.6.6
+  '@storybook/addon-vitest': ^10.6.6
+  "@storybook/react-vite": ^10.6.8
+  '@types/node': ^24.19.2
+  '@vitest/browser-playwright': ^4.1.12
+  '@vitest/coverage-v8': ^4.1.12
+  playwright: ^1.65.0
+  storybook: ^10.6.6
+  vite: ^8.3.7
+  '@lanekassen/ds-css': ^0.5.0
+  '@lanekassen/ds-icons': ^0.5.0
+  '@lanekassen/ds-react': ^0.5.0
+  msw-storybook-addon: ^3.0.3
+  msw: ^2.15.0
+  '@tinymce/tinymce-react': ^6.3.1
+  tinymce: ^8.10.2
+
+allowBuilds:
+  esbuild: false
+  msw: false

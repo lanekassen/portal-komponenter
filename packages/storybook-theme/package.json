@@ -1,0 +1,52 @@
+{
+  "name": "@internal/storybook-theme",
+  "version": "0.1.4",
+  "type": "module",
+  "author": "Lånekassen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lanekassen/portal-komponenter.git"
+  },
+  "homepage": "https://github.com/lanekassen/portal-komponenter/blob/main/packages/storybook-theme",
+  "license": "MIT",
+  "keywords": [
+    "storybook",
+    "lanekassen"
+  ],
+  "exports": {
+    "./main": "./src/main.ts",
+    "./manager": "./src/manager.ts",
+    "./preview": "./src/preview.tsx"
+  },
+  "files": [
+    "package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@lanekassen/ds-css": "catalog:",
+    "@lanekassen/ds-icons": "catalog:",
+    "@lanekassen/ds-react": "catalog:",
+    "@mdx-js/react": "catalog:",
+    "@navikt/aksel-icons": "catalog:",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-docs": "catalog:",
+    "@storybook/addon-themes": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "storybook": "catalog:",
+    "vite": "catalog:"
+  },
+  "scripts": {
+    "test": "tsc"
+  }
+}

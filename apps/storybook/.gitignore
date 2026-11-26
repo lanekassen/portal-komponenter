@@ -1,0 +1,6 @@
+*storybook.log
+storybook-static
+test-report.xml
+chromatic.log
+chromatic-diagnostics.json
+mockServiceWorker.js
