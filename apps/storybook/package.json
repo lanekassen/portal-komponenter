@@ -1,0 +1,49 @@
+{
+  "name": "@apps/storybook",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "storybook dev -p 3001",
+    "build": "storybook build",
+    "test": "vitest",
+    "install:msw": "msw init ./public --save"
+  },
+  "dependencies": {
+    "@lanekassen/portal-riktekst": "workspace:^",
+    "@lanekassen/portal-samtykke": "workspace:^",
+    "@tinymce/tinymce-react": "catalog:",
+    "msw": "catalog:",
+    "msw-storybook-addon": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tinymce": "catalog:"
+  },
+  "devDependencies": {
+    "@internal/storybook-theme": "workspace:^",
+    "@lanekassen/ds-css": "catalog:",
+    "@lanekassen/ds-icons": "catalog:",
+    "@lanekassen/ds-react": "catalog:",
+    "@mdx-js/react": "catalog:",
+    "@navikt/aksel-icons": "catalog:",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-docs": "catalog:",
+    "@storybook/addon-themes": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "playwright": "catalog:",
+    "storybook": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

@@ -1,0 +1,118 @@
+import { defineMain, type StorybookConfig } from "@storybook/react-vite/node";
+import type { UserConfig } from "vite";
+import { mergeConfig } from "vite";
+
+const managerHead = `
+<style>
+  /**
+   * Rounded content
+   */
+  #root > div { padding: 1em min(1rem, 1%); gap: .25rem }
+  #root > div > div { border-radius: .75rem; border: 1px solid color-mix(in hsl, currentcolor, transparent 90%); overflow: hidden }
+  #root > div > :has(.sidebar-container) { border: 0; overflow: visible }
+  #root div:has(+ .sidebar-container)::after { opacity: 0 }
+
+  #root .sb-bar { box-shadow: none }
+  #storybook-preview-iframe { outline: 1px solid rgb(0 0 0 / .2) }
+
+  /**
+   * Sidebar
+   */
+  .sidebar-container { color: #110821 }
+  .sidebar-container .sidebar-header a { font-size: 1.25rem } /* Larger title in sidebar */
+  .sidebar-container .sidebar-item :is(a, button) { align-items: center; font: inherit; font-weight: 400; white-space: pre }
+  .sidebar-container .sidebar-item a { gap: 0 }
+  .sidebar-container .sidebar-item:hover { background: #F4EEF6 }
+  .sidebar-container .sidebar-item,
+  .sidebar-container .sidebar-subheading,
+  .sidebar-container .search-result-item--label > * {
+    color: inherit;
+    font-size: 1rem;
+    letter-spacing: 0;
+    line-height: 1.5;
+    text-transform: none;
+  }
+  .sidebar-container .search-result-item--label span { text-overflow: clip }
+
+  .sidebar-container .search-result-item:is([data-id$="--default"], [data-id$="--docs"]) .search-result-item--label > :first-child { display: none }
+  .sidebar-container .search-result-item:not([data-id$="--docs"], [data-id$="--default"]) .search-result-item--label > :first-child,
+  .sidebar-container .search-result-item .search-result-item--label > :last-child > :last-child:not(:first-child) {
+    font-weight: 700; /* Highlight component in path */
+    &::before { font-weight: 400; }
+  }
+  .sidebar-container .search-result-item--label > :last-child {
+    display: flex;
+    gap: .25em;
+  }
+
+  /**
+   * Search
+   */
+  .search-field.search-field { box-shadow: none; position: relative }
+  .search-field.search-field #storybook-explorer-searchfield { font: inherit }
+  .search-field.search-field #storybook-explorer-searchfield::placeholder { color: transparent }
+  .search-field.search-field:has(#storybook-explorer-searchfield:placeholder-shown)::before {
+    content: 'Søk';
+    margin-left: 2em;
+    opacity: .8;
+    position: absolute;
+  }
+
+  /**
+   * Hide stuff
+   */
+  .sidebar-container.sidebar-container .sidebar-header ~ *, /* Hide install guide for authors */
+  .sidebar-container.sidebar-container #storybook-explorer-searchfield ~ *, /* Search help */
+  .sidebar-container.sidebar-container .search-field + button, /* Disable "Create new story" <button> */
+  .sidebar-container.sidebar-container .sidebar-header button, /* Hide settings */
+  .sidebar-container.sidebar-container svg[type], /* Hide sidebar type icons */
+  .sidebar-container.sidebar-container button[data-testid="tree-change-status-button"], /* Hide "new story" star */
+  .sidebar-container.sidebar-container button[data-action="expand-all"], /* Hide expand <button> */
+  .sidebar-container.sidebar-container button[title="Tag filters"], /* Hide filter tags <button> */
+  .sidebar-container.sidebar-container button[role="switch"][aria-label*="review" i], /* Hide review stories button */
+  .sidebar-container.sidebar-container [data-displayed], /* Hide "Open in edtior" context menu in sidebar */
+  .sb-bar.sb-bar button[aria-label="Open in editor"], /* Hide "Open in edtior" (new markup) */
+  .sb-bar.sb-bar button[title="Open in editor"] /* Hide "Open in edtior" (old markup) */
+    { display: none }
+</style>
+
+`;
+
+export const main: StorybookConfig = defineMain({
+  stories: ["./src/*.stories.@(j|t)sx?"],
+  addons: [
+    "@storybook/addon-a11y",
+    "@storybook/addon-docs",
+    "@storybook/addon-themes",
+    "@storybook/addon-vitest",
+  ],
+  framework: "@storybook/react-vite",
+  features: {
+    sidebarOnboardingChecklist: false,
+    interactions: false,
+  },
+  managerHead: (s) => `${s}
+${managerHead}`,
+  core: {
+    disableTelemetry: true,
+  },
+  viteFinal: (config) => {
+    return mergeConfig(config, {
+      build: {
+        rolldownOptions: {
+          onLog(level, log, defaultHandler) {
+            // Silence warnings for "use client" directives which was introduced in rolldown v1.2.9
+            // Adapted from https://github.com/vitejs/vite-plugin-react/blob/c90e60ace9cadafa9d056836cc2b9ffe68e1f21d/packages/common/warning.ts#L9
+            if (
+              log.code === "MODULE_LEVEL_DIRECTIVE" &&
+              log.message.includes("use client")
+            ) {
+              return;
+            }
+            defaultHandler(level, log);
+          },
+        },
+      },
+    } satisfies UserConfig);
+  },
+});

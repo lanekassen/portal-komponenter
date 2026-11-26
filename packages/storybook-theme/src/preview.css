@@ -1,0 +1,59 @@
+html {
+  font-family: "Nunito Sans", sans-serif;
+}
+
+/* Markdown alerts */
+.markdown-alert-caution,
+.markdown-alert-note,
+.markdown-alert-tip,
+.markdown-alert-important,
+.markdown-alert-warning {
+  & > p {
+    margin: 0;
+  }
+  & > header {
+    display: none;
+  }
+}
+
+.sbdocs-content.sbdocs-content {
+  max-width: 50rem; /* 800px */
+  padding-bottom: 200px; /* Space for scroll */
+}
+
+/* Blockquote */
+.sbdocs-content blockquote:not(.ds-alert) {
+  margin-inline: 0;
+}
+
+/* Code */
+.sbdocs-content.sbdocs-content code {
+  font-size: var(--ds-font-size-3);
+  color: var(--ds-color-neutral-text-default);
+  border-color: var(--ds-color-border-subtle);
+  background: var(--ds-color-background-tinted);
+  display: inline;
+  white-space: normal;
+}
+
+/* Source */
+.docblock-code-toggle.docblock-code-toggle,
+.docblock-source.docblock-source button {
+  background: var(--ds-color-surface-default);
+  color: var(--ds-color-text-default);
+  border-radius: 0;
+}
+.docblock-source.docblock-source {
+  background: var(--ds-color-background-default);
+  box-shadow: none;
+  color: var(--ds-color-text-default);
+  border-color: var(--ds-color-neutral-border-subtle);
+}
+.docblock-source .prismjs * {
+  font-size: var(--ds-font-size-2);
+  line-height: var(--ds-line-height-md);
+}
+[data-color-scheme="dark"] .docblock-source .prismjs * {
+  /* biome-ignore lint/complexity/noImportantStyles: syntax highlighting don't work in dark mode, so we override the text color */
+  color: inherit !important;
+}
